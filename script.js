@@ -91,6 +91,277 @@ resetBeerPong.addEventListener("click", () => {
   updateBeerPongUI();
 });
 
+const beerPongCanvas = document.getElementById("beer-pong-canvas");
+const beerPongSwipeStatus = document.getElementById("beer-pong-swipe-status");
+const resetBeerPongSwipe = document.getElementById("reset-beer-pong-swipe");
+
+if (beerPongCanvas && beerPongSwipeStatus && resetBeerPongSwipe) {
+  const ctx = beerPongCanvas.getContext("2d");
+  const tableWidth = beerPongCanvas.width;
+  const tableHeight = beerPongCanvas.height;
+  const cupRadius = 16;
+
+  const swipeState = {
+    cups: [],
+    ball: {
+      x: tableWidth / 2,
+      y: tableHeight - 34,
+      vx: 0,
+      vy: 0,
+      r: 10,
+      moving: false,
+    },
+    dragging: false,
+    dragStart: null,
+    dragCurrent: null,
+    cupsLeft: 6,
+    won: false,
+  };
+
+  function updateSwipeStatus(message = "") {
+    if (message) {
+      beerPongSwipeStatus.textContent = message;
+      return;
+    }
+
+    if (swipeState.won) {
+      beerPongSwipeStatus.textContent = "Bucket! You cleared all cups. Reset to play again.";
+      return;
+    }
+
+    beerPongSwipeStatus.textContent = `Swipe to shoot. Cups left: ${swipeState.cupsLeft}`;
+  }
+
+  function buildCups() {
+    const rowY = 78;
+    const spacing = 42;
+    const startX = tableWidth / 2;
+    swipeState.cups = [];
+
+    const rows = [3, 2, 1];
+    rows.forEach((count, rowIndex) => {
+      const rowOffset = ((count - 1) * spacing) / 2;
+      for (let i = 0; i < count; i += 1) {
+        swipeState.cups.push({
+          x: startX - rowOffset + i * spacing,
+          y: rowY + rowIndex * 36,
+          r: cupRadius,
+          hit: false,
+        });
+      }
+    });
+  }
+
+  function resetBall() {
+    swipeState.ball.x = tableWidth / 2;
+    swipeState.ball.y = tableHeight - 34;
+    swipeState.ball.vx = 0;
+    swipeState.ball.vy = 0;
+    swipeState.ball.moving = false;
+    swipeState.dragging = false;
+    swipeState.dragStart = null;
+    swipeState.dragCurrent = null;
+  }
+
+  function resetSwipeGame() {
+    buildCups();
+    swipeState.cupsLeft = swipeState.cups.length;
+    swipeState.won = false;
+    resetBall();
+    updateSwipeStatus();
+  }
+
+  function canvasPointFromEvent(event) {
+    const rect = beerPongCanvas.getBoundingClientRect();
+    const scaleX = tableWidth / rect.width;
+    const scaleY = tableHeight / rect.height;
+    return {
+      x: (event.clientX - rect.left) * scaleX,
+      y: (event.clientY - rect.top) * scaleY,
+    };
+  }
+
+  function distance(a, b) {
+    const dx = a.x - b.x;
+    const dy = a.y - b.y;
+    return Math.sqrt(dx * dx + dy * dy);
+  }
+
+  function drawTable() {
+    if (!ctx) {
+      return;
+    }
+
+    ctx.clearRect(0, 0, tableWidth, tableHeight);
+
+    ctx.save();
+    ctx.globalAlpha = 0.25;
+    ctx.fillStyle = "#ff7a59";
+    ctx.beginPath();
+    ctx.ellipse(tableWidth / 2, tableHeight + 12, 220, 70, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    swipeState.cups.forEach((cup) => {
+      if (cup.hit) {
+        return;
+      }
+
+      ctx.fillStyle = "#f5f7fa";
+      ctx.strokeStyle = "#cc324b";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(cup.x, cup.y, cup.r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = "rgba(208, 0, 50, 0.2)";
+      ctx.beginPath();
+      ctx.arc(cup.x, cup.y + 3, cup.r - 5, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    if (swipeState.dragging && swipeState.dragStart && swipeState.dragCurrent) {
+      ctx.strokeStyle = "#ffd166";
+      ctx.lineWidth = 3;
+      ctx.setLineDash([7, 6]);
+      ctx.beginPath();
+      ctx.moveTo(swipeState.dragStart.x, swipeState.dragStart.y);
+      ctx.lineTo(swipeState.dragCurrent.x, swipeState.dragCurrent.y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    ctx.fillStyle = "#ffd166";
+    ctx.beginPath();
+    ctx.arc(swipeState.ball.x, swipeState.ball.y, swipeState.ball.r, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = "#ef6351";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+
+  function stepPhysics() {
+    const ball = swipeState.ball;
+    if (!ball.moving || swipeState.won) {
+      return;
+    }
+
+    ball.vy += 0.16;
+    ball.vx *= 0.996;
+    ball.vy *= 0.996;
+    ball.x += ball.vx;
+    ball.y += ball.vy;
+
+    if (ball.x <= ball.r || ball.x >= tableWidth - ball.r) {
+      ball.x = Math.max(ball.r, Math.min(tableWidth - ball.r, ball.x));
+      ball.vx *= -0.72;
+    }
+
+    if (ball.y <= ball.r) {
+      ball.y = ball.r;
+      ball.vy *= -0.72;
+    }
+
+    if (ball.y > tableHeight + 45) {
+      resetBall();
+      updateSwipeStatus();
+      return;
+    }
+
+    if (Math.abs(ball.vx) + Math.abs(ball.vy) < 0.12 && ball.y > tableHeight - 60) {
+      resetBall();
+      updateSwipeStatus();
+      return;
+    }
+
+    for (let i = 0; i < swipeState.cups.length; i += 1) {
+      const cup = swipeState.cups[i];
+      if (cup.hit) {
+        continue;
+      }
+
+      if (distance(ball, cup) < cup.r) {
+        cup.hit = true;
+        swipeState.cupsLeft -= 1;
+        resetBall();
+        if (swipeState.cupsLeft <= 0) {
+          swipeState.won = true;
+          updateSwipeStatus();
+        } else {
+          updateSwipeStatus(`Nice shot! Cups left: ${swipeState.cupsLeft}`);
+        }
+        break;
+      }
+    }
+  }
+
+  function gameLoop() {
+    stepPhysics();
+    drawTable();
+    window.requestAnimationFrame(gameLoop);
+  }
+
+  beerPongCanvas.addEventListener("pointerdown", (event) => {
+    if (swipeState.ball.moving || swipeState.won) {
+      return;
+    }
+
+    const point = canvasPointFromEvent(event);
+    if (distance(point, swipeState.ball) > swipeState.ball.r * 2.4) {
+      return;
+    }
+
+    swipeState.dragging = true;
+    swipeState.dragStart = { x: swipeState.ball.x, y: swipeState.ball.y };
+    swipeState.dragCurrent = point;
+    beerPongCanvas.setPointerCapture(event.pointerId);
+  });
+
+  beerPongCanvas.addEventListener("pointermove", (event) => {
+    if (!swipeState.dragging) {
+      return;
+    }
+
+    event.preventDefault();
+    swipeState.dragCurrent = canvasPointFromEvent(event);
+  });
+
+  function releaseSwipe(event) {
+    if (!swipeState.dragging || !swipeState.dragStart || !swipeState.dragCurrent) {
+      return;
+    }
+
+    const dx = swipeState.dragCurrent.x - swipeState.dragStart.x;
+    const dy = swipeState.dragCurrent.y - swipeState.dragStart.y;
+    const speed = Math.sqrt(dx * dx + dy * dy);
+
+    if (speed > 10) {
+      swipeState.ball.vx = dx * 0.08;
+      swipeState.ball.vy = dy * 0.08;
+      swipeState.ball.moving = true;
+      updateSwipeStatus("Ball in flight...");
+    }
+
+    swipeState.dragging = false;
+    swipeState.dragCurrent = null;
+    swipeState.dragStart = null;
+
+    if (event) {
+      beerPongCanvas.releasePointerCapture(event.pointerId);
+    }
+  }
+
+  beerPongCanvas.addEventListener("pointerup", releaseSwipe);
+  beerPongCanvas.addEventListener("pointercancel", releaseSwipe);
+
+  resetBeerPongSwipe.addEventListener("click", resetSwipeGame);
+
+  resetSwipeGame();
+  gameLoop();
+}
+
 const rankRules = {
   A: "Waterfall: Everyone starts drinking, no one stops before the person to the right.",
   K: "King's Cup: Add a drink to the center cup. Last king drinks it.",

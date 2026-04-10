@@ -204,6 +204,35 @@ h1 {
   margin-top: 0.3rem;
 }
 
+.panel-header.compact {
+  margin-bottom: 0.4rem;
+}
+
+.beer-pong-swipe {
+  margin-top: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 14px;
+  padding: 0.85rem;
+  background: linear-gradient(145deg, rgba(5, 20, 31, 0.72), rgba(17, 49, 66, 0.48));
+}
+
+#beer-pong-canvas {
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: radial-gradient(circle at 50% 100%, rgba(255, 122, 89, 0.2), transparent 60%),
+    linear-gradient(180deg, #0c2434 0%, #0b3043 100%);
+  touch-action: none;
+  display: block;
+}
+
+#beer-pong-swipe-status {
+  margin: 0;
+  color: var(--accent-2);
+  font-weight: 700;
+}
+
 .teams {
   display: grid;
   gap: 0.9rem;
