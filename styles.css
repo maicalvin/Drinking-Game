@@ -216,15 +216,38 @@ h1 {
   background: linear-gradient(145deg, rgba(5, 20, 31, 0.72), rgba(17, 49, 66, 0.48));
 }
 
+.swipe-scoreboard {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(120px, 1fr));
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.swipe-scoreboard p {
+  margin: 0;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  padding: 0.4rem 0.65rem;
+  text-align: center;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.swipe-scoreboard span {
+  color: var(--accent-2);
+}
+
 #beer-pong-canvas {
   width: 100%;
+  min-height: 220px;
   height: auto;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.2);
-  background: radial-gradient(circle at 50% 100%, rgba(255, 122, 89, 0.2), transparent 60%),
-    linear-gradient(180deg, #0c2434 0%, #0b3043 100%);
+  background: radial-gradient(circle at 50% 100%, rgba(255, 182, 39, 0.24), transparent 62%),
+    linear-gradient(180deg, #14374b 0%, #0d2737 55%, #081a26 100%);
   touch-action: none;
   display: block;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.07);
 }
 
 #beer-pong-swipe-status {
@@ -528,6 +551,10 @@ h1 {
 
   .inline-actions {
     width: 100%;
+  }
+
+  .swipe-scoreboard {
+    grid-template-columns: 1fr;
   }
 
   .inline-actions .draw,

@@ -94,21 +94,33 @@ resetBeerPong.addEventListener("click", () => {
 const beerPongCanvas = document.getElementById("beer-pong-canvas");
 const beerPongSwipeStatus = document.getElementById("beer-pong-swipe-status");
 const resetBeerPongSwipe = document.getElementById("reset-beer-pong-swipe");
+const swipeTurnEl = document.getElementById("swipe-turn");
+const swipeScoreAEl = document.getElementById("swipe-score-a");
+const swipeScoreBEl = document.getElementById("swipe-score-b");
 
-if (beerPongCanvas && beerPongSwipeStatus && resetBeerPongSwipe) {
+if (
+  beerPongCanvas &&
+  beerPongSwipeStatus &&
+  resetBeerPongSwipe &&
+  swipeTurnEl &&
+  swipeScoreAEl &&
+  swipeScoreBEl
+) {
   const ctx = beerPongCanvas.getContext("2d");
   const tableWidth = beerPongCanvas.width;
   const tableHeight = beerPongCanvas.height;
-  const cupRadius = 16;
+  const cupRadius = 20;
+  let audioCtx = null;
 
   const swipeState = {
     cups: [],
+    particles: [],
     ball: {
       x: tableWidth / 2,
       y: tableHeight - 34,
       vx: 0,
       vy: 0,
-      r: 10,
+      r: 12,
       moving: false,
     },
     dragging: false,
@@ -116,7 +128,78 @@ if (beerPongCanvas && beerPongSwipeStatus && resetBeerPongSwipe) {
     dragCurrent: null,
     cupsLeft: 6,
     won: false,
+    turn: "a",
+    shotTeam: null,
+    score: { a: 0, b: 0 },
   };
+
+  function ensureAudio() {
+    if (!audioCtx) {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) {
+        return null;
+      }
+      audioCtx = new AudioCtx();
+    }
+
+    if (audioCtx.state === "suspended") {
+      audioCtx.resume().catch(() => {});
+    }
+
+    return audioCtx;
+  }
+
+  function playTone(type) {
+    const localCtx = ensureAudio();
+    if (!localCtx) {
+      return;
+    }
+
+    const now = localCtx.currentTime;
+    const osc = localCtx.createOscillator();
+    const gain = localCtx.createGain();
+    osc.connect(gain);
+    gain.connect(localCtx.destination);
+
+    if (type === "hit") {
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(360, now);
+      osc.frequency.exponentialRampToValueAtTime(680, now + 0.14);
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(0.18, now + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.2);
+      osc.start(now);
+      osc.stop(now + 0.22);
+      return;
+    }
+
+    if (type === "win") {
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(480, now);
+      osc.frequency.exponentialRampToValueAtTime(860, now + 0.2);
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(0.2, now + 0.03);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.28);
+      osc.start(now);
+      osc.stop(now + 0.3);
+      return;
+    }
+
+    osc.type = "square";
+    osc.frequency.setValueAtTime(240, now);
+    osc.frequency.exponentialRampToValueAtTime(180, now + 0.1);
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.12, now + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.14);
+    osc.start(now);
+    osc.stop(now + 0.16);
+  }
+
+  function updateScoreboard() {
+    swipeTurnEl.textContent = swipeState.turn === "a" ? "Team A" : "Team B";
+    swipeScoreAEl.textContent = swipeState.score.a;
+    swipeScoreBEl.textContent = swipeState.score.b;
+  }
 
   function updateSwipeStatus(message = "") {
     if (message) {
@@ -125,11 +208,13 @@ if (beerPongCanvas && beerPongSwipeStatus && resetBeerPongSwipe) {
     }
 
     if (swipeState.won) {
-      beerPongSwipeStatus.textContent = "Bucket! You cleared all cups. Reset to play again.";
+      const winnerName = swipeState.turn === "a" ? "Team A" : "Team B";
+      beerPongSwipeStatus.textContent = `${winnerName} wins the table! Reset to play again.`;
       return;
     }
 
-    beerPongSwipeStatus.textContent = `Swipe to shoot. Cups left: ${swipeState.cupsLeft}`;
+    const turnName = swipeState.turn === "a" ? "Team A" : "Team B";
+    beerPongSwipeStatus.textContent = `${turnName} to shoot. Cups left: ${swipeState.cupsLeft}`;
   }
 
   function buildCups() {
@@ -167,7 +252,13 @@ if (beerPongCanvas && beerPongSwipeStatus && resetBeerPongSwipe) {
     buildCups();
     swipeState.cupsLeft = swipeState.cups.length;
     swipeState.won = false;
+    swipeState.turn = "a";
+    swipeState.shotTeam = null;
+    swipeState.score.a = 0;
+    swipeState.score.b = 0;
+    swipeState.particles = [];
     resetBall();
+    updateScoreboard();
     updateSwipeStatus();
   }
 
@@ -195,35 +286,42 @@ if (beerPongCanvas && beerPongSwipeStatus && resetBeerPongSwipe) {
     ctx.clearRect(0, 0, tableWidth, tableHeight);
 
     ctx.save();
-    ctx.globalAlpha = 0.25;
-    ctx.fillStyle = "#ff7a59";
+    ctx.globalAlpha = 0.18;
+    ctx.fillStyle = "#ffbd3a";
     ctx.beginPath();
     ctx.ellipse(tableWidth / 2, tableHeight + 12, 220, 70, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
+
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.14)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(44, 64);
+    ctx.lineTo(tableWidth - 44, 64);
+    ctx.stroke();
 
     swipeState.cups.forEach((cup) => {
       if (cup.hit) {
         return;
       }
 
-      ctx.fillStyle = "#f5f7fa";
-      ctx.strokeStyle = "#cc324b";
-      ctx.lineWidth = 2;
+      ctx.fillStyle = "#fffaf4";
+      ctx.strokeStyle = "#e64862";
+      ctx.lineWidth = 3;
       ctx.beginPath();
       ctx.arc(cup.x, cup.y, cup.r, 0, Math.PI * 2);
       ctx.fill();
       ctx.stroke();
 
-      ctx.fillStyle = "rgba(208, 0, 50, 0.2)";
+      ctx.fillStyle = "rgba(230, 72, 98, 0.28)";
       ctx.beginPath();
       ctx.arc(cup.x, cup.y + 3, cup.r - 5, 0, Math.PI * 2);
       ctx.fill();
     });
 
     if (swipeState.dragging && swipeState.dragStart && swipeState.dragCurrent) {
-      ctx.strokeStyle = "#ffd166";
-      ctx.lineWidth = 3;
+      ctx.strokeStyle = "#ffe08a";
+      ctx.lineWidth = 4;
       ctx.setLineDash([7, 6]);
       ctx.beginPath();
       ctx.moveTo(swipeState.dragStart.x, swipeState.dragStart.y);
@@ -232,17 +330,94 @@ if (beerPongCanvas && beerPongSwipeStatus && resetBeerPongSwipe) {
       ctx.setLineDash([]);
     }
 
-    ctx.fillStyle = "#ffd166";
+    swipeState.particles.forEach((particle) => {
+      ctx.globalAlpha = Math.max(0, particle.life / particle.maxLife);
+      ctx.fillStyle = particle.color;
+      ctx.beginPath();
+      ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+
+    ctx.fillStyle = "#ffcf55";
     ctx.beginPath();
     ctx.arc(swipeState.ball.x, swipeState.ball.y, swipeState.ball.r, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.strokeStyle = "#ef6351";
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = "#ff7a59";
+    ctx.lineWidth = 3;
     ctx.stroke();
+
+    ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
+    ctx.beginPath();
+    ctx.arc(swipeState.ball.x - 3, swipeState.ball.y - 3, 3, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  function createSplash(x, y) {
+    const colors = ["#ffd166", "#ff7a59", "#f8edeb", "#ef476f"];
+    for (let i = 0; i < 28; i += 1) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 1.2 + Math.random() * 3.8;
+      swipeState.particles.push({
+        x,
+        y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - 0.7,
+        life: 34 + Math.random() * 24,
+        maxLife: 56,
+        size: 1.5 + Math.random() * 2.6,
+        color: colors[Math.floor(Math.random() * colors.length)],
+      });
+    }
+  }
+
+  function updateParticles() {
+    for (let i = swipeState.particles.length - 1; i >= 0; i -= 1) {
+      const particle = swipeState.particles[i];
+      particle.x += particle.vx;
+      particle.y += particle.vy;
+      particle.vy += 0.07;
+      particle.vx *= 0.98;
+      particle.life -= 1;
+
+      if (particle.life <= 0) {
+        swipeState.particles.splice(i, 1);
+      }
+    }
+  }
+
+  function switchTurn() {
+    swipeState.turn = swipeState.turn === "a" ? "b" : "a";
+  }
+
+  function finishShot({ hit, message }) {
+    const shootingTeam = swipeState.shotTeam || swipeState.turn;
+
+    if (hit) {
+      swipeState.score[shootingTeam] += 1;
+      playTone("hit");
+    }
+
+    if (swipeState.cupsLeft <= 0) {
+      swipeState.won = true;
+      swipeState.turn = shootingTeam;
+      playTone("win");
+      updateScoreboard();
+      updateSwipeStatus();
+      resetBall();
+      return;
+    }
+
+    switchTurn();
+    updateScoreboard();
+    resetBall();
+    updateSwipeStatus(message || "");
   }
 
   function stepPhysics() {
+    updateParticles();
+
     const ball = swipeState.ball;
     if (!ball.moving || swipeState.won) {
       return;
@@ -265,14 +440,12 @@ if (beerPongCanvas && beerPongSwipeStatus && resetBeerPongSwipe) {
     }
 
     if (ball.y > tableHeight + 45) {
-      resetBall();
-      updateSwipeStatus();
+      finishShot({ hit: false });
       return;
     }
 
     if (Math.abs(ball.vx) + Math.abs(ball.vy) < 0.12 && ball.y > tableHeight - 60) {
-      resetBall();
-      updateSwipeStatus();
+      finishShot({ hit: false });
       return;
     }
 
@@ -285,13 +458,8 @@ if (beerPongCanvas && beerPongSwipeStatus && resetBeerPongSwipe) {
       if (distance(ball, cup) < cup.r) {
         cup.hit = true;
         swipeState.cupsLeft -= 1;
-        resetBall();
-        if (swipeState.cupsLeft <= 0) {
-          swipeState.won = true;
-          updateSwipeStatus();
-        } else {
-          updateSwipeStatus(`Nice shot! Cups left: ${swipeState.cupsLeft}`);
-        }
+        createSplash(cup.x, cup.y);
+        finishShot({ hit: true, message: `Bucket by ${swipeState.shotTeam === "a" ? "Team A" : "Team B"}!` });
         break;
       }
     }
@@ -307,6 +475,8 @@ if (beerPongCanvas && beerPongSwipeStatus && resetBeerPongSwipe) {
     if (swipeState.ball.moving || swipeState.won) {
       return;
     }
+
+    ensureAudio();
 
     const point = canvasPointFromEvent(event);
     if (distance(point, swipeState.ball) > swipeState.ball.r * 2.4) {
@@ -341,6 +511,8 @@ if (beerPongCanvas && beerPongSwipeStatus && resetBeerPongSwipe) {
       swipeState.ball.vx = dx * 0.08;
       swipeState.ball.vy = dy * 0.08;
       swipeState.ball.moving = true;
+      swipeState.shotTeam = swipeState.turn;
+      playTone("launch");
       updateSwipeStatus("Ball in flight...");
     }
 
