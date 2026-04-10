@@ -14,6 +14,7 @@ panelButtons.forEach((button) => {
 
 const fxToggle = document.getElementById("fx-toggle");
 const fxStatus = document.getElementById("fx-status");
+const screenFlash = document.getElementById("screen-flash");
 
 const partyFx = {
   enabled: true,
@@ -101,6 +102,12 @@ if (fxToggle && fxStatus) {
     partyFx.enabled = !partyFx.enabled;
     fxToggle.textContent = `Party Sound: ${partyFx.enabled ? "On" : "Off"}`;
     fxStatus.textContent = partyFx.enabled ? "Hype mode active" : "Hype mode muted";
+    if (!partyFx.enabled) {
+      stopRingFireBeatLoop();
+    }
+    if (partyFx.enabled) {
+      startOrUpdateRingFireBeatLoop();
+    }
     if (partyFx.enabled) {
       playPartyFx("blip");
     }
@@ -331,6 +338,7 @@ if (
           x: startX - rowOffset + i * spacing,
           y: rowY + rowIndex * 36,
           r: cupRadius,
+          innerR: cupRadius * 0.42,
           hit: false,
         });
       }
@@ -523,9 +531,9 @@ if (
       return;
     }
 
-    ball.vy += 0.16;
-    ball.vx *= 0.996;
-    ball.vy *= 0.996;
+    ball.vy += 0.22;
+    ball.vx *= 0.992;
+    ball.vy *= 0.992;
     ball.x += ball.vx;
     ball.y += ball.vy;
 
@@ -555,12 +563,31 @@ if (
         continue;
       }
 
-      if (distance(ball, cup) < cup.r) {
+      const dist = distance(ball, cup);
+      const descending = ball.vy > 0;
+      const cleanSink = dist < cup.innerR && descending && ball.y <= cup.y + cup.r * 0.45;
+
+      if (cleanSink) {
         cup.hit = true;
         swipeState.cupsLeft -= 1;
         createSplash(cup.x, cup.y);
         finishShot({ hit: true, message: `Bucket by ${swipeState.shotTeam === "a" ? "Team A" : "Team B"}!` });
         break;
+      }
+
+      if (dist < cup.r + ball.r * 0.55) {
+        const nx = (ball.x - cup.x) / (dist || 1);
+        const ny = (ball.y - cup.y) / (dist || 1);
+        const overlap = cup.r + ball.r * 0.55 - dist;
+        ball.x += nx * overlap;
+        ball.y += ny * overlap;
+        const dot = ball.vx * nx + ball.vy * ny;
+        if (dot < 0) {
+          ball.vx -= 1.55 * dot * nx;
+          ball.vy -= 1.55 * dot * ny;
+        }
+        ball.vx *= 0.92;
+        ball.vy *= 0.92;
       }
     }
   }
@@ -608,8 +635,10 @@ if (
     const speed = Math.sqrt(dx * dx + dy * dy);
 
     if (speed > 10) {
-      swipeState.ball.vx = dx * 0.08;
-      swipeState.ball.vy = dy * 0.08;
+      const powerScale = 0.065;
+      const maxSpeed = 24;
+      swipeState.ball.vx = Math.max(-maxSpeed, Math.min(maxSpeed, dx * powerScale));
+      swipeState.ball.vy = Math.max(-maxSpeed, Math.min(maxSpeed, dy * powerScale));
       swipeState.ball.moving = true;
       swipeState.shotTeam = swipeState.turn;
       playTone("launch");
@@ -661,12 +690,19 @@ const cardsLeft = document.getElementById("cards-left");
 const resetRingFire = document.getElementById("reset-ring-fire");
 const ringFirePokerCard = document.getElementById("ring-fire-poker-card");
 const ringFireStage = document.getElementById("ring-fire-stage");
+const endgameBanner = document.getElementById("endgame-banner");
 const kingStatusEl = document.getElementById("king-status");
 const kingSlots = Array.from(document.querySelectorAll(".king-slot"));
 let ringFireAudioCtx = null;
+const ringBeatState = {
+  timerId: null,
+  bpm: 0,
+  step: 0,
+};
 const ringFireState = {
   kingsDrawn: 0,
   kingComplete: false,
+  endgameActive: false,
 };
 
 const suitSymbolMap = {
@@ -741,6 +777,10 @@ function updateDeckUI(messageTitle = "Ready to draw", messageBody = "Press draw 
 }
 
 function ensureRingFireAudio() {
+  if (!partyFx.enabled) {
+    return null;
+  }
+
   if (!ringFireAudioCtx) {
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
     if (!AudioCtx) {
@@ -754,6 +794,148 @@ function ensureRingFireAudio() {
   }
 
   return ringFireAudioCtx;
+}
+
+function getRingBeatBpm() {
+  if (deck.length <= 8) {
+    return 156;
+  }
+  if (deck.length <= 16) {
+    return 142;
+  }
+  if (deck.length <= 28) {
+    return 124;
+  }
+  if (deck.length <= 40) {
+    return 110;
+  }
+  return 98;
+}
+
+function ringBeatTick() {
+  const audio = ensureRingFireAudio();
+  if (!audio) {
+    return;
+  }
+
+  const now = audio.currentTime;
+  const progress = Math.min(1, (52 - deck.length) / 52);
+  const beatStrength = 0.045 + progress * 0.05;
+
+  const kick = audio.createOscillator();
+  const kickGain = audio.createGain();
+  kick.type = "sine";
+  kick.frequency.setValueAtTime(110, now);
+  kick.frequency.exponentialRampToValueAtTime(58, now + 0.1);
+  kickGain.gain.setValueAtTime(0.0001, now);
+  kickGain.gain.exponentialRampToValueAtTime(beatStrength, now + 0.01);
+  kickGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.14);
+  kick.connect(kickGain);
+  kickGain.connect(audio.destination);
+  kick.start(now);
+  kick.stop(now + 0.16);
+
+  if (ringBeatState.step % 2 === 1) {
+    const hat = audio.createOscillator();
+    const hatGain = audio.createGain();
+    hat.type = "square";
+    hat.frequency.setValueAtTime(1200, now);
+    hatGain.gain.setValueAtTime(0.0001, now);
+    hatGain.gain.exponentialRampToValueAtTime(0.025 + progress * 0.02, now + 0.005);
+    hatGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.05);
+    hat.connect(hatGain);
+    hatGain.connect(audio.destination);
+    hat.start(now);
+    hat.stop(now + 0.06);
+  }
+
+  ringBeatState.step += 1;
+}
+
+function stopRingFireBeatLoop() {
+  if (ringBeatState.timerId) {
+    window.clearInterval(ringBeatState.timerId);
+    ringBeatState.timerId = null;
+  }
+  ringBeatState.bpm = 0;
+}
+
+function startOrUpdateRingFireBeatLoop() {
+  if (!partyFx.enabled || deck.length >= 52 || deck.length === 0) {
+    stopRingFireBeatLoop();
+    return;
+  }
+
+  const bpm = getRingBeatBpm();
+  if (ringBeatState.timerId && ringBeatState.bpm === bpm) {
+    return;
+  }
+
+  stopRingFireBeatLoop();
+  ringBeatState.bpm = bpm;
+  const interval = Math.round((60_000 / bpm) / 2);
+  ringBeatState.timerId = window.setInterval(ringBeatTick, interval);
+}
+
+function playEndgameBassDrop() {
+  const audio = ensureRingFireAudio();
+  if (!audio) {
+    return;
+  }
+
+  const now = audio.currentTime;
+  const bass = audio.createOscillator();
+  const bassGain = audio.createGain();
+  bass.type = "sawtooth";
+  bass.frequency.setValueAtTime(180, now);
+  bass.frequency.exponentialRampToValueAtTime(42, now + 0.32);
+  bassGain.gain.setValueAtTime(0.0001, now);
+  bassGain.gain.exponentialRampToValueAtTime(0.22, now + 0.05);
+  bassGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.42);
+  bass.connect(bassGain);
+  bassGain.connect(audio.destination);
+  bass.start(now);
+  bass.stop(now + 0.44);
+
+  const riser = audio.createOscillator();
+  const riserGain = audio.createGain();
+  riser.type = "triangle";
+  riser.frequency.setValueAtTime(280, now + 0.03);
+  riser.frequency.exponentialRampToValueAtTime(720, now + 0.2);
+  riserGain.gain.setValueAtTime(0.0001, now + 0.03);
+  riserGain.gain.exponentialRampToValueAtTime(0.12, now + 0.08);
+  riserGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.25);
+  riser.connect(riserGain);
+  riserGain.connect(audio.destination);
+  riser.start(now + 0.03);
+  riser.stop(now + 0.27);
+}
+
+function setEndgameState(active) {
+  ringFireState.endgameActive = active;
+  if (endgameBanner) {
+    endgameBanner.classList.toggle("active", active);
+  }
+}
+
+function maybeTriggerEndgame() {
+  if (deck.length <= 8 && deck.length > 0 && !ringFireState.endgameActive) {
+    setEndgameState(true);
+    playEndgameBassDrop();
+    playPartyFx("success");
+  }
+}
+
+function triggerFinalKingImpact() {
+  document.body.classList.remove("screen-shake");
+  void document.body.offsetWidth;
+  document.body.classList.add("screen-shake");
+
+  if (screenFlash) {
+    screenFlash.classList.remove("active");
+    void screenFlash.offsetWidth;
+    screenFlash.classList.add("active");
+  }
 }
 
 function playRingFireSound(rank) {
@@ -803,6 +985,21 @@ function playRingFireSound(rank) {
     kingGain.connect(audio.destination);
     king.start(now + 0.02);
     king.stop(now + 0.32);
+  }
+
+  if (rank === "K" && ringFireState.kingsDrawn >= 4) {
+    const impact = audio.createOscillator();
+    const impactGain = audio.createGain();
+    impact.type = "sawtooth";
+    impact.frequency.setValueAtTime(180, now + 0.01);
+    impact.frequency.exponentialRampToValueAtTime(44, now + 0.28);
+    impactGain.gain.setValueAtTime(0.0001, now + 0.01);
+    impactGain.gain.exponentialRampToValueAtTime(0.18, now + 0.05);
+    impactGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.32);
+    impact.connect(impactGain);
+    impactGain.connect(audio.destination);
+    impact.start(now + 0.01);
+    impact.stop(now + 0.34);
   }
 }
 
@@ -855,6 +1052,7 @@ function drawCard() {
   if (deck.length === 0) {
     updateDeckUI("Deck Empty", "Reset to shuffle a new Ring of Fire round.");
     renderPokerCard(ringFirePokerCard, null);
+    setEndgameState(false);
     if (ringFireStage) {
       ringFireStage.classList.remove("ignite", "king-flare", "inferno-burst");
       ringFireStage.style.setProperty("--fire-intensity", "0.75");
@@ -886,10 +1084,13 @@ function drawCard() {
   triggerRingFireEffect(card.rank);
   if (isFinalKing) {
     triggerRingFireExplosion();
+    triggerFinalKingImpact();
   }
   playRingFireSound(card.rank);
   playPartyFx(card.rank === "K" ? "success" : "blip");
   hypePop(cardOutput);
+  maybeTriggerEndgame();
+  startOrUpdateRingFireBeatLoop();
 }
 
 drawCardButton.addEventListener("click", drawCard);
@@ -900,11 +1101,13 @@ resetRingFire.addEventListener("click", () => {
   renderPokerCard(ringFirePokerCard, null);
   ringFireState.kingsDrawn = 0;
   ringFireState.kingComplete = false;
+  setEndgameState(false);
   updateKingsMeter();
   if (ringFireStage) {
     ringFireStage.classList.remove("ignite", "king-flare", "inferno-burst");
     ringFireStage.style.setProperty("--fire-intensity", "0.75");
   }
+  stopRingFireBeatLoop();
   playPartyFx("blip");
 });
 
