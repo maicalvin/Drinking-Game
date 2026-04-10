@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Truth or Drink - Party Pour</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="ambient ambient-one" aria-hidden="true"></div>
+    <div class="ambient ambient-two" aria-hidden="true"></div>
+    <div id="screen-flash" aria-hidden="true"></div>
+
+    <header class="hero">
+      <p class="eyebrow">Party Pour</p>
+      <h1>Truth or Drink</h1>
+      <p class="hero-copy">Answer honestly or take the sip.</p>
+      <div class="hero-controls">
+        <a class="ghost" href="index.html">Back Home</a>
+        <button id="fx-toggle" class="ghost" type="button">Party Sound: On</button>
+        <p id="fx-status">Hype mode active</p>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="panel active" id="truth-or-drink" aria-labelledby="tod-heading">
+        <div class="panel-header">
+          <h3 id="tod-heading">Truth or Drink</h3>
+          <p>Get a random question. Answer or drink.</p>
+        </div>
+
+        <div class="deck-area">
+          <button id="draw-tod" class="draw">New Question</button>
+          <div class="card-output" id="tod-output" aria-live="polite">
+            <p class="card-rank">Truth or drink?</p>
+            <p class="card-rule">Tap new question to begin.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>

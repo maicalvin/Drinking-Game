@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Power Hour - Party Pour</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="ambient ambient-one" aria-hidden="true"></div>
+    <div class="ambient ambient-two" aria-hidden="true"></div>
+    <div id="screen-flash" aria-hidden="true"></div>
+
+    <header class="hero">
+      <p class="eyebrow">Party Pour</p>
+      <h1>Power Hour</h1>
+      <p class="hero-copy">Keep pace to 60 rounds.</p>
+      <div class="hero-controls">
+        <a class="ghost" href="index.html">Back Home</a>
+        <button id="fx-toggle" class="ghost" type="button">Party Sound: On</button>
+        <p id="fx-status">Hype mode active</p>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="panel active" id="power-hour" aria-labelledby="power-hour-heading">
+        <div class="panel-header">
+          <h3 id="power-hour-heading">Power Hour</h3>
+          <p>Advance one round each minute until round 60.</p>
+        </div>
+
+        <div class="status-tile">
+          <p class="tile-label">Current Round</p>
+          <p class="tile-value" id="power-round">0 / 60</p>
+          <div class="power-bar"><span id="power-fill"></span></div>
+        </div>
+
+        <div class="status-row">
+          <button id="power-next" class="draw">Next Round</button>
+          <button id="power-reset" class="ghost">Reset Power Hour</button>
+        </div>
+        <p id="power-status" class="helper-text">Press next round when the minute hits.</p>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>

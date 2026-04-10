@@ -127,6 +127,10 @@ const beerPongStatus = document.getElementById("beer-pong-status");
 const resetBeerPong = document.getElementById("reset-beer-pong");
 
 function updateBeerPongUI() {
+  if (!cupsA || !cupsB || !beerPongStatus) {
+    return;
+  }
+
   cupsA.textContent = beerPongState.cups.a;
   cupsB.textContent = beerPongState.cups.b;
 
@@ -177,26 +181,28 @@ function undoCup(team) {
   updateBeerPongUI();
 }
 
-document.querySelectorAll("[data-action='score']").forEach((button) => {
-  button.addEventListener("click", () => {
-    scoreCup(button.dataset.team);
+if (cupsA && cupsB && beerPongStatus && resetBeerPong) {
+  document.querySelectorAll("[data-action='score']").forEach((button) => {
+    button.addEventListener("click", () => {
+      scoreCup(button.dataset.team);
+    });
   });
-});
 
-document.querySelectorAll("[data-action='undo']").forEach((button) => {
-  button.addEventListener("click", () => {
-    undoCup(button.dataset.team);
+  document.querySelectorAll("[data-action='undo']").forEach((button) => {
+    button.addEventListener("click", () => {
+      undoCup(button.dataset.team);
+    });
   });
-});
 
-resetBeerPong.addEventListener("click", () => {
-  beerPongState.cups = { a: 10, b: 10 };
-  beerPongState.history = [];
-  beerPongState.turn = "a";
-  beerPongState.winner = null;
-  playPartyFx("blip");
-  updateBeerPongUI();
-});
+  resetBeerPong.addEventListener("click", () => {
+    beerPongState.cups = { a: 10, b: 10 };
+    beerPongState.history = [];
+    beerPongState.turn = "a";
+    beerPongState.winner = null;
+    playPartyFx("blip");
+    updateBeerPongUI();
+  });
+}
 
 const beerPongCanvas = document.getElementById("beer-pong-canvas");
 const beerPongSwipeStatus = document.getElementById("beer-pong-swipe-status");
@@ -768,6 +774,10 @@ function createDeck() {
 }
 
 function updateDeckUI(messageTitle = "Ready to draw", messageBody = "Press draw to start your round.") {
+  if (!cardsLeft || !cardOutput) {
+    return;
+  }
+
   cardsLeft.textContent = `${deck.length} cards left`;
 
   const title = cardOutput.querySelector(".card-rank");
@@ -1093,23 +1103,25 @@ function drawCard() {
   startOrUpdateRingFireBeatLoop();
 }
 
-drawCardButton.addEventListener("click", drawCard);
+if (drawCardButton && resetRingFire && cardOutput && cardsLeft) {
+  drawCardButton.addEventListener("click", drawCard);
 
-resetRingFire.addEventListener("click", () => {
-  deck = createDeck();
-  updateDeckUI();
-  renderPokerCard(ringFirePokerCard, null);
-  ringFireState.kingsDrawn = 0;
-  ringFireState.kingComplete = false;
-  setEndgameState(false);
-  updateKingsMeter();
-  if (ringFireStage) {
-    ringFireStage.classList.remove("ignite", "king-flare", "inferno-burst");
-    ringFireStage.style.setProperty("--fire-intensity", "0.75");
-  }
-  stopRingFireBeatLoop();
-  playPartyFx("blip");
-});
+  resetRingFire.addEventListener("click", () => {
+    deck = createDeck();
+    updateDeckUI();
+    renderPokerCard(ringFirePokerCard, null);
+    ringFireState.kingsDrawn = 0;
+    ringFireState.kingComplete = false;
+    setEndgameState(false);
+    updateKingsMeter();
+    if (ringFireStage) {
+      ringFireStage.classList.remove("ignite", "king-flare", "inferno-burst");
+      ringFireStage.style.setProperty("--fire-intensity", "0.75");
+    }
+    stopRingFireBeatLoop();
+    playPartyFx("blip");
+  });
+}
 
 const nhiePrompts = [
   "Never have I ever sent a text to the wrong person.",
@@ -1158,8 +1170,15 @@ function pickRandom(list) {
 function setupPromptGame(buttonId, outputId, titleText, prompts) {
   const button = document.getElementById(buttonId);
   const output = document.getElementById(outputId);
+  if (!button || !output) {
+    return;
+  }
+
   const title = output.querySelector(".card-rank");
   const body = output.querySelector(".card-rule");
+  if (!title || !body) {
+    return;
+  }
 
   button.addEventListener("click", () => {
     title.textContent = titleText;
@@ -1207,67 +1226,82 @@ function updateFlipUI() {
   flipTimerEl.textContent = formatMs(shownElapsed);
 }
 
-document.getElementById("flip-a-plus").addEventListener("click", () => {
-  flipState.a += 1;
-  playPartyFx("blip");
-  updateFlipUI();
-});
+if (flipAEl && flipBEl && flipTimerEl && flipStart && flipStop && flipReset) {
+  const flipAPlus = document.getElementById("flip-a-plus");
+  const flipAMinus = document.getElementById("flip-a-minus");
+  const flipBPlus = document.getElementById("flip-b-plus");
+  const flipBMinus = document.getElementById("flip-b-minus");
 
-document.getElementById("flip-a-minus").addEventListener("click", () => {
-  flipState.a = Math.max(0, flipState.a - 1);
-  playPartyFx("warning");
-  updateFlipUI();
-});
-
-document.getElementById("flip-b-plus").addEventListener("click", () => {
-  flipState.b += 1;
-  playPartyFx("blip");
-  updateFlipUI();
-});
-
-document.getElementById("flip-b-minus").addEventListener("click", () => {
-  flipState.b = Math.max(0, flipState.b - 1);
-  playPartyFx("warning");
-  updateFlipUI();
-});
-
-flipStart.addEventListener("click", () => {
-  if (flipState.running) {
-    return;
+  if (flipAPlus) {
+    flipAPlus.addEventListener("click", () => {
+      flipState.a += 1;
+      playPartyFx("blip");
+      updateFlipUI();
+    });
   }
 
-  flipState.running = true;
-  flipState.startedAt = Date.now();
-  flipState.timerId = window.setInterval(updateFlipUI, 250);
-  playPartyFx("blip");
-});
-
-flipStop.addEventListener("click", () => {
-  if (!flipState.running) {
-    return;
+  if (flipAMinus) {
+    flipAMinus.addEventListener("click", () => {
+      flipState.a = Math.max(0, flipState.a - 1);
+      playPartyFx("warning");
+      updateFlipUI();
+    });
   }
 
-  flipState.elapsed += Date.now() - flipState.startedAt;
-  flipState.running = false;
-  window.clearInterval(flipState.timerId);
-  flipState.timerId = null;
-  playPartyFx("warning");
-  updateFlipUI();
-});
+  if (flipBPlus) {
+    flipBPlus.addEventListener("click", () => {
+      flipState.b += 1;
+      playPartyFx("blip");
+      updateFlipUI();
+    });
+  }
 
-flipReset.addEventListener("click", () => {
-  if (flipState.timerId) {
+  if (flipBMinus) {
+    flipBMinus.addEventListener("click", () => {
+      flipState.b = Math.max(0, flipState.b - 1);
+      playPartyFx("warning");
+      updateFlipUI();
+    });
+  }
+
+  flipStart.addEventListener("click", () => {
+    if (flipState.running) {
+      return;
+    }
+
+    flipState.running = true;
+    flipState.startedAt = Date.now();
+    flipState.timerId = window.setInterval(updateFlipUI, 250);
+    playPartyFx("blip");
+  });
+
+  flipStop.addEventListener("click", () => {
+    if (!flipState.running) {
+      return;
+    }
+
+    flipState.elapsed += Date.now() - flipState.startedAt;
+    flipState.running = false;
     window.clearInterval(flipState.timerId);
-  }
-  flipState.a = 0;
-  flipState.b = 0;
-  flipState.running = false;
-  flipState.startedAt = 0;
-  flipState.elapsed = 0;
-  flipState.timerId = null;
-  playPartyFx("blip");
-  updateFlipUI();
-});
+    flipState.timerId = null;
+    playPartyFx("warning");
+    updateFlipUI();
+  });
+
+  flipReset.addEventListener("click", () => {
+    if (flipState.timerId) {
+      window.clearInterval(flipState.timerId);
+    }
+    flipState.a = 0;
+    flipState.b = 0;
+    flipState.running = false;
+    flipState.startedAt = 0;
+    flipState.elapsed = 0;
+    flipState.timerId = null;
+    playPartyFx("blip");
+    updateFlipUI();
+  });
+}
 
 const powerRoundEl = document.getElementById("power-round");
 const powerStatusEl = document.getElementById("power-status");
@@ -1281,6 +1315,10 @@ const powerState = {
 };
 
 function updatePowerUI() {
+  if (!powerRoundEl || !powerStatusEl) {
+    return;
+  }
+
   powerRoundEl.textContent = `${powerState.round} / ${powerState.maxRound}`;
   if (powerFill) {
     const percent = Math.min(100, (powerState.round / powerState.maxRound) * 100);
@@ -1293,23 +1331,25 @@ function updatePowerUI() {
   }
 }
 
-powerNext.addEventListener("click", () => {
-  if (powerState.round < powerState.maxRound) {
-    powerState.round += 1;
-    if (powerState.round % 10 === 0 || powerState.round === powerState.maxRound) {
-      playPartyFx("success");
-    } else {
-      playPartyFx("blip");
+if (powerRoundEl && powerStatusEl && powerNext && powerReset) {
+  powerNext.addEventListener("click", () => {
+    if (powerState.round < powerState.maxRound) {
+      powerState.round += 1;
+      if (powerState.round % 10 === 0 || powerState.round === powerState.maxRound) {
+        playPartyFx("success");
+      } else {
+        playPartyFx("blip");
+      }
+      updatePowerUI();
     }
-    updatePowerUI();
-  }
-});
+  });
 
-powerReset.addEventListener("click", () => {
-  powerState.round = 0;
-  playPartyFx("warning");
-  updatePowerUI();
-});
+  powerReset.addEventListener("click", () => {
+    powerState.round = 0;
+    playPartyFx("warning");
+    updatePowerUI();
+  });
+}
 
 const hlCurrentEl = document.getElementById("hl-current");
 const hlStatusEl = document.getElementById("hl-status");
@@ -1356,6 +1396,10 @@ function cardLabel(card) {
 }
 
 function resetHigherLower() {
+  if (!hlCurrentEl || !hlStatusEl || !hlPokerCard) {
+    return;
+  }
+
   higherLowerState.deck = createPlayingDeck();
   higherLowerState.current = higherLowerState.deck.pop();
   higherLowerState.streak = 0;
@@ -1368,6 +1412,10 @@ function resetHigherLower() {
 }
 
 function playHigherLower(guess) {
+  if (!hlCurrentEl || !hlStatusEl || !hlPokerCard) {
+    return;
+  }
+
   if (higherLowerState.deck.length === 0) {
     hlStatusEl.textContent = "Deck finished. Reset to play again.";
     return;
@@ -1405,15 +1453,27 @@ function playHigherLower(guess) {
   renderPokerCard(hlPokerCard, next);
 }
 
-hlHigher.addEventListener("click", () => playHigherLower("higher"));
-hlLower.addEventListener("click", () => playHigherLower("lower"));
-hlReset.addEventListener("click", resetHigherLower);
+if (hlHigher && hlLower && hlReset && hlCurrentEl && hlStatusEl && hlPokerCard) {
+  hlHigher.addEventListener("click", () => playHigherLower("higher"));
+  hlLower.addEventListener("click", () => playHigherLower("lower"));
+  hlReset.addEventListener("click", resetHigherLower);
+}
 
 deck = createDeck();
 updateKingsMeter();
-updateBeerPongUI();
-updateDeckUI();
-renderPokerCard(ringFirePokerCard, null);
-updateFlipUI();
-updatePowerUI();
-resetHigherLower();
+if (cupsA && cupsB && beerPongStatus) {
+  updateBeerPongUI();
+}
+if (cardOutput && cardsLeft) {
+  updateDeckUI();
+  renderPokerCard(ringFirePokerCard, null);
+}
+if (flipAEl && flipBEl && flipTimerEl) {
+  updateFlipUI();
+}
+if (powerRoundEl && powerStatusEl) {
+  updatePowerUI();
+}
+if (hlHigher && hlLower && hlReset && hlCurrentEl && hlStatusEl && hlPokerCard) {
+  resetHigherLower();
+}

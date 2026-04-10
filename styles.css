@@ -189,6 +189,7 @@ h1 {
 }
 
 .cta,
+.cta-link,
 .hit,
 .undo,
 .draw,
@@ -202,11 +203,17 @@ h1 {
 }
 
 .cta,
+.cta-link,
 .hit,
 .draw {
   background: linear-gradient(120deg, var(--accent), #ef6351);
   color: #fff;
   padding: 0.65rem 1rem;
+}
+
+.cta-link {
+  display: inline-block;
+  text-decoration: none;
 }
 
 .undo,
@@ -217,6 +224,7 @@ h1 {
 }
 
 .cta:hover,
+.cta-link:hover,
 .hit:hover,
 .undo:hover,
 .draw:hover,
@@ -950,7 +958,8 @@ h1 {
   .hit,
   .undo,
   .draw,
-  .cta {
+  .cta,
+  .cta-link {
     width: 100%;
   }
 

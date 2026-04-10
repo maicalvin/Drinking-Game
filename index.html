@@ -36,7 +36,7 @@
           <p>
             Track cup counts, keep score pressure high, and settle who dominates the table.
           </p>
-          <button class="cta" data-target="beer-pong">Open Beer Pong</button>
+          <a class="cta-link" href="beer-pong.html">Open Beer Pong</a>
         </article>
 
         <article class="game-card" id="ring-fire-card">
@@ -44,7 +44,7 @@
           <p>
             Draw cards from a shared deck and follow the rule assigned to each card.
           </p>
-          <button class="cta" data-target="ring-of-fire">Open Ring of Fire</button>
+          <a class="cta-link" href="ring-of-fire.html">Open Ring of Fire</a>
         </article>
 
         <article class="game-card">
@@ -52,7 +52,7 @@
           <p>
             Pull a random confession prompt and see who has to sip.
           </p>
-          <button class="cta" data-target="never-have-i-ever">Open Never Have I Ever</button>
+          <a class="cta-link" href="never-have-i-ever.html">Open Never Have I Ever</a>
         </article>
 
         <article class="game-card">
@@ -60,7 +60,7 @@
           <p>
             Reveal a scenario and point at the friend who fits the chaos best.
           </p>
-          <button class="cta" data-target="most-likely-to">Open Most Likely To</button>
+          <a class="cta-link" href="most-likely-to.html">Open Most Likely To</a>
         </article>
 
         <article class="game-card">
@@ -68,7 +68,7 @@
           <p>
             Ask bold questions. Answer honestly or drink.
           </p>
-          <button class="cta" data-target="truth-or-drink">Open Truth or Drink</button>
+          <a class="cta-link" href="truth-or-drink.html">Open Truth or Drink</a>
         </article>
 
         <article class="game-card">
@@ -76,7 +76,7 @@
           <p>
             Run a quick race with lap counters and a game timer.
           </p>
-          <button class="cta" data-target="flip-cup">Open Flip Cup</button>
+          <a class="cta-link" href="flip-cup.html">Open Flip Cup</a>
         </article>
 
         <article class="game-card">
@@ -84,7 +84,7 @@
           <p>
             Keep a steady 60-round minute tracker and stay on pace.
           </p>
-          <button class="cta" data-target="power-hour">Open Power Hour</button>
+          <a class="cta-link" href="power-hour.html">Open Power Hour</a>
         </article>
 
         <article class="game-card">
@@ -92,226 +92,8 @@
           <p>
             Guess if the next card is higher or lower. Miss and drink.
           </p>
-          <button class="cta" data-target="higher-lower">Open Higher or Lower</button>
+          <a class="cta-link" href="higher-lower.html">Open Higher or Lower</a>
         </article>
-      </section>
-
-      <section class="panel active" id="beer-pong" aria-labelledby="beer-pong-heading">
-        <div class="panel-header">
-          <h3 id="beer-pong-heading">Beer Pong Tracker</h3>
-          <p>Tap when a team sinks a cup. First to clear all cups wins.</p>
-        </div>
-
-        <div class="teams">
-          <div class="team" data-team="a">
-            <h4>Team A</h4>
-            <p class="cups-left"><span id="cups-a">10</span> cups left</p>
-            <div class="team-actions">
-              <button class="hit" data-action="score" data-team="a">Team A Scores</button>
-              <button class="undo" data-action="undo" data-team="a">Undo</button>
-            </div>
-          </div>
-
-          <div class="team" data-team="b">
-            <h4>Team B</h4>
-            <p class="cups-left"><span id="cups-b">10</span> cups left</p>
-            <div class="team-actions">
-              <button class="hit" data-action="score" data-team="b">Team B Scores</button>
-              <button class="undo" data-action="undo" data-team="b">Undo</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="status-row">
-          <p id="beer-pong-status">Team A starts. Lock in your first shot.</p>
-          <button id="reset-beer-pong" class="ghost">Reset Game</button>
-        </div>
-
-        <div class="beer-pong-swipe">
-          <div class="panel-header compact">
-            <h4>Swipe Beer Pong</h4>
-            <p>Drag from the ball and release to shoot. Sink all cups.</p>
-          </div>
-          <div class="swipe-scoreboard">
-            <p>Turn: <span id="swipe-turn">Team A</span></p>
-            <p>Score A: <span id="swipe-score-a">0</span></p>
-            <p>Score B: <span id="swipe-score-b">0</span></p>
-          </div>
-          <canvas id="beer-pong-canvas" width="720" height="360" aria-label="Swipe beer pong mini game"></canvas>
-          <div class="status-row">
-            <p id="beer-pong-swipe-status">Swipe to shoot. Cups left: 6</p>
-            <button id="reset-beer-pong-swipe" class="ghost">Reset Swipe Game</button>
-          </div>
-        </div>
-      </section>
-
-      <section class="panel" id="ring-of-fire" aria-labelledby="ring-fire-heading">
-        <div class="panel-header">
-          <h3 id="ring-fire-heading">Ring of Fire Deck</h3>
-          <p>Draw one card at a time and follow the rule. Deck shuffles each reset.</p>
-        </div>
-
-        <div class="deck-area">
-          <button id="draw-card" class="draw">Draw Card</button>
-          <div class="card-output" id="card-output" aria-live="polite">
-            <div class="fire-stage" id="ring-fire-stage" aria-hidden="true">
-              <div class="fire-glow"></div>
-              <div class="fire-embers">
-                <span></span><span></span><span></span><span></span><span></span><span></span>
-              </div>
-              <div class="poker-card is-back" id="ring-fire-poker-card">
-                <div class="poker-card-face poker-card-back">
-                  <p>PARTY</p>
-                </div>
-              </div>
-            </div>
-            <p class="card-rank">Ready to draw</p>
-            <p class="card-rule">Press draw to start your round.</p>
-          </div>
-          <div class="kings-meter" id="kings-meter" aria-live="polite">
-            <p class="kings-title">Last King Drinks Meter</p>
-            <div class="kings-slots">
-              <span class="king-slot"></span>
-              <span class="king-slot"></span>
-              <span class="king-slot"></span>
-              <span class="king-slot"></span>
-            </div>
-            <p id="king-status" class="kings-status">Kings drawn: 0 / 4</p>
-          </div>
-          <div id="endgame-banner" class="endgame-banner" aria-live="polite">
-            ENDGAME - LAST 8 CARDS
-          </div>
-        </div>
-
-        <div class="status-row">
-          <p id="cards-left">52 cards left</p>
-          <button id="reset-ring-fire" class="ghost">Reset Deck</button>
-        </div>
-      </section>
-
-      <section class="panel" id="never-have-i-ever" aria-labelledby="nhie-heading">
-        <div class="panel-header">
-          <h3 id="nhie-heading">Never Have I Ever</h3>
-          <p>One prompt at a time. If you have done it, take a sip.</p>
-        </div>
-
-        <div class="deck-area">
-          <button id="draw-nhie" class="draw">New Prompt</button>
-          <div class="card-output" id="nhie-output" aria-live="polite">
-            <p class="card-rank">Never have I ever...</p>
-            <p class="card-rule">Tap new prompt to begin.</p>
-          </div>
-        </div>
-      </section>
-
-      <section class="panel" id="most-likely-to" aria-labelledby="mlt-heading">
-        <div class="panel-header">
-          <h3 id="mlt-heading">Most Likely To</h3>
-          <p>Read the scenario, vote quickly, and losing vote drinks.</p>
-        </div>
-
-        <div class="deck-area">
-          <button id="draw-mlt" class="draw">New Scenario</button>
-          <div class="card-output" id="mlt-output" aria-live="polite">
-            <p class="card-rank">Most likely to...</p>
-            <p class="card-rule">Tap new scenario to start.</p>
-          </div>
-        </div>
-      </section>
-
-      <section class="panel" id="truth-or-drink" aria-labelledby="tod-heading">
-        <div class="panel-header">
-          <h3 id="tod-heading">Truth or Drink</h3>
-          <p>Get a random question. Answer or drink.</p>
-        </div>
-
-        <div class="deck-area">
-          <button id="draw-tod" class="draw">New Question</button>
-          <div class="card-output" id="tod-output" aria-live="polite">
-            <p class="card-rank">Truth or drink?</p>
-            <p class="card-rule">Tap new question to begin.</p>
-          </div>
-        </div>
-      </section>
-
-      <section class="panel" id="flip-cup" aria-labelledby="flip-cup-heading">
-        <div class="panel-header">
-          <h3 id="flip-cup-heading">Flip Cup Race</h3>
-          <p>Track team flips and race time in one screen.</p>
-        </div>
-
-        <div class="teams">
-          <div class="team">
-            <h4>Team A</h4>
-            <p class="cups-left"><span id="flip-a">0</span> flips</p>
-            <div class="team-actions">
-              <button class="hit" id="flip-a-plus">Add Flip</button>
-              <button class="undo" id="flip-a-minus">Undo</button>
-            </div>
-          </div>
-
-          <div class="team">
-            <h4>Team B</h4>
-            <p class="cups-left"><span id="flip-b">0</span> flips</p>
-            <div class="team-actions">
-              <button class="hit" id="flip-b-plus">Add Flip</button>
-              <button class="undo" id="flip-b-minus">Undo</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="status-row">
-          <p id="flip-timer">00:00</p>
-          <div class="inline-actions">
-            <button id="flip-start" class="draw">Start Timer</button>
-            <button id="flip-stop" class="undo">Stop</button>
-            <button id="flip-reset" class="ghost">Reset</button>
-          </div>
-        </div>
-      </section>
-
-      <section class="panel" id="power-hour" aria-labelledby="power-hour-heading">
-        <div class="panel-header">
-          <h3 id="power-hour-heading">Power Hour</h3>
-          <p>Advance one round each minute until round 60.</p>
-        </div>
-
-        <div class="status-tile">
-          <p class="tile-label">Current Round</p>
-          <p class="tile-value" id="power-round">0 / 60</p>
-          <div class="power-bar"><span id="power-fill"></span></div>
-        </div>
-
-        <div class="status-row">
-          <button id="power-next" class="draw">Next Round</button>
-          <button id="power-reset" class="ghost">Reset Power Hour</button>
-        </div>
-        <p id="power-status" class="helper-text">Press next round when the minute hits.</p>
-      </section>
-
-      <section class="panel" id="higher-lower" aria-labelledby="higher-lower-heading">
-        <div class="panel-header">
-          <h3 id="higher-lower-heading">Higher or Lower</h3>
-          <p>Guess whether the next card is higher or lower than the current card.</p>
-        </div>
-
-        <div class="status-tile">
-          <p class="tile-label">Current Card</p>
-          <div class="poker-card is-back" id="hl-poker-card" aria-hidden="true">
-            <div class="poker-card-face poker-card-back">
-              <p>HIGH/LOW</p>
-            </div>
-          </div>
-          <p class="tile-value" id="hl-current">Draw to begin</p>
-        </div>
-
-        <div class="status-row">
-          <button id="hl-higher" class="draw">Higher</button>
-          <button id="hl-lower" class="draw">Lower</button>
-          <button id="hl-reset" class="ghost">Reset Deck</button>
-        </div>
-        <p id="hl-streak" class="helper-text">Streak: 0</p>
-        <p id="hl-status" class="helper-text">Make a guess to reveal the next card.</p>
       </section>
     </main>
 
@@ -319,6 +101,5 @@
       <p>Drink responsibly. This app is for adult game nights only.</p>
     </footer>
 
-    <script src="script.js"></script>
   </body>
 </html>

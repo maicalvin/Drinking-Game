@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Never Have I Ever - Party Pour</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="ambient ambient-one" aria-hidden="true"></div>
+    <div class="ambient ambient-two" aria-hidden="true"></div>
+    <div id="screen-flash" aria-hidden="true"></div>
+
+    <header class="hero">
+      <p class="eyebrow">Party Pour</p>
+      <h1>Never Have I Ever</h1>
+      <p class="hero-copy">Confessions, laughs, and instant chaos.</p>
+      <div class="hero-controls">
+        <a class="ghost" href="index.html">Back Home</a>
+        <button id="fx-toggle" class="ghost" type="button">Party Sound: On</button>
+        <p id="fx-status">Hype mode active</p>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="panel active" id="never-have-i-ever" aria-labelledby="nhie-heading">
+        <div class="panel-header">
+          <h3 id="nhie-heading">Never Have I Ever</h3>
+          <p>One prompt at a time. If you have done it, take a sip.</p>
+        </div>
+
+        <div class="deck-area">
+          <button id="draw-nhie" class="draw">New Prompt</button>
+          <div class="card-output" id="nhie-output" aria-live="polite">
+            <p class="card-rank">Never have I ever...</p>
+            <p class="card-rule">Tap new prompt to begin.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>

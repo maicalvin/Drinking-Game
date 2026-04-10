@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Flip Cup - Party Pour</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="ambient ambient-one" aria-hidden="true"></div>
+    <div class="ambient ambient-two" aria-hidden="true"></div>
+    <div id="screen-flash" aria-hidden="true"></div>
+
+    <header class="hero">
+      <p class="eyebrow">Party Pour</p>
+      <h1>Flip Cup Race</h1>
+      <p class="hero-copy">Track flips and race time live.</p>
+      <div class="hero-controls">
+        <a class="ghost" href="index.html">Back Home</a>
+        <button id="fx-toggle" class="ghost" type="button">Party Sound: On</button>
+        <p id="fx-status">Hype mode active</p>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="panel active" id="flip-cup" aria-labelledby="flip-cup-heading">
+        <div class="panel-header">
+          <h3 id="flip-cup-heading">Flip Cup Race</h3>
+          <p>Track team flips and race time in one screen.</p>
+        </div>
+
+        <div class="teams">
+          <div class="team">
+            <h4>Team A</h4>
+            <p class="cups-left"><span id="flip-a">0</span> flips</p>
+            <div class="team-actions">
+              <button class="hit" id="flip-a-plus">Add Flip</button>
+              <button class="undo" id="flip-a-minus">Undo</button>
+            </div>
+          </div>
+
+          <div class="team">
+            <h4>Team B</h4>
+            <p class="cups-left"><span id="flip-b">0</span> flips</p>
+            <div class="team-actions">
+              <button class="hit" id="flip-b-plus">Add Flip</button>
+              <button class="undo" id="flip-b-minus">Undo</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="status-row">
+          <p id="flip-timer">00:00</p>
+          <div class="inline-actions">
+            <button id="flip-start" class="draw">Start Timer</button>
+            <button id="flip-stop" class="undo">Stop</button>
+            <button id="flip-reset" class="ghost">Reset</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>

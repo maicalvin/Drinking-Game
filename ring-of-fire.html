@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ring of Fire - Party Pour</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="ambient ambient-one" aria-hidden="true"></div>
+    <div class="ambient ambient-two" aria-hidden="true"></div>
+    <div id="screen-flash" aria-hidden="true"></div>
+
+    <header class="hero">
+      <p class="eyebrow">Party Pour</p>
+      <h1>Ring of Fire</h1>
+      <p class="hero-copy">Build heat, draw kings, survive endgame.</p>
+      <div class="hero-controls">
+        <a class="ghost" href="index.html">Back Home</a>
+        <button id="fx-toggle" class="ghost" type="button">Party Sound: On</button>
+        <p id="fx-status">Hype mode active</p>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="panel active" id="ring-of-fire" aria-labelledby="ring-fire-heading">
+        <div class="panel-header">
+          <h3 id="ring-fire-heading">Ring of Fire Deck</h3>
+          <p>Draw one card at a time and follow the rule. Deck shuffles each reset.</p>
+        </div>
+
+        <div class="deck-area">
+          <button id="draw-card" class="draw">Draw Card</button>
+          <div class="card-output" id="card-output" aria-live="polite">
+            <div class="fire-stage" id="ring-fire-stage" aria-hidden="true">
+              <div class="fire-glow"></div>
+              <div class="fire-embers">
+                <span></span><span></span><span></span><span></span><span></span><span></span>
+              </div>
+              <div class="poker-card is-back" id="ring-fire-poker-card">
+                <div class="poker-card-face poker-card-back">
+                  <p>PARTY</p>
+                </div>
+              </div>
+            </div>
+            <p class="card-rank">Ready to draw</p>
+            <p class="card-rule">Press draw to start your round.</p>
+          </div>
+          <div class="kings-meter" id="kings-meter" aria-live="polite">
+            <p class="kings-title">Last King Drinks Meter</p>
+            <div class="kings-slots">
+              <span class="king-slot"></span>
+              <span class="king-slot"></span>
+              <span class="king-slot"></span>
+              <span class="king-slot"></span>
+            </div>
+            <p id="king-status" class="kings-status">Kings drawn: 0 / 4</p>
+          </div>
+          <div id="endgame-banner" class="endgame-banner" aria-live="polite">
+            ENDGAME - LAST 8 CARDS
+          </div>
+        </div>
+
+        <div class="status-row">
+          <p id="cards-left">52 cards left</p>
+          <button id="reset-ring-fire" class="ghost">Reset Deck</button>
+        </div>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
