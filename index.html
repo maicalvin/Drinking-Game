@@ -22,6 +22,10 @@
       <p class="hero-copy">
         Pick a game, gather your friends, and let the chaos begin. Built for mobile tables and loud living rooms.
       </p>
+      <div class="hero-controls">
+        <button id="fx-toggle" class="ghost" type="button">Party Sound: On</button>
+        <p id="fx-status">Hype mode active</p>
+      </div>
     </header>
 
     <main class="layout">
@@ -149,13 +153,29 @@
         <div class="deck-area">
           <button id="draw-card" class="draw">Draw Card</button>
           <div class="card-output" id="card-output" aria-live="polite">
-            <div class="poker-card is-back" id="ring-fire-poker-card" aria-hidden="true">
-              <div class="poker-card-face poker-card-back">
-                <p>PARTY</p>
+            <div class="fire-stage" id="ring-fire-stage" aria-hidden="true">
+              <div class="fire-glow"></div>
+              <div class="fire-embers">
+                <span></span><span></span><span></span><span></span><span></span><span></span>
+              </div>
+              <div class="poker-card is-back" id="ring-fire-poker-card">
+                <div class="poker-card-face poker-card-back">
+                  <p>PARTY</p>
+                </div>
               </div>
             </div>
             <p class="card-rank">Ready to draw</p>
             <p class="card-rule">Press draw to start your round.</p>
+          </div>
+          <div class="kings-meter" id="kings-meter" aria-live="polite">
+            <p class="kings-title">Last King Drinks Meter</p>
+            <div class="kings-slots">
+              <span class="king-slot"></span>
+              <span class="king-slot"></span>
+              <span class="king-slot"></span>
+              <span class="king-slot"></span>
+            </div>
+            <p id="king-status" class="kings-status">Kings drawn: 0 / 4</p>
           </div>
         </div>
 
@@ -255,6 +275,7 @@
         <div class="status-tile">
           <p class="tile-label">Current Round</p>
           <p class="tile-value" id="power-round">0 / 60</p>
+          <div class="power-bar"><span id="power-fill"></span></div>
         </div>
 
         <div class="status-row">
@@ -285,6 +306,7 @@
           <button id="hl-lower" class="draw">Lower</button>
           <button id="hl-reset" class="ghost">Reset Deck</button>
         </div>
+        <p id="hl-streak" class="helper-text">Streak: 0</p>
         <p id="hl-status" class="helper-text">Make a guess to reveal the next card.</p>
       </section>
     </main>

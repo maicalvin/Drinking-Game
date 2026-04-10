@@ -12,6 +12,101 @@ panelButtons.forEach((button) => {
   });
 });
 
+const fxToggle = document.getElementById("fx-toggle");
+const fxStatus = document.getElementById("fx-status");
+
+const partyFx = {
+  enabled: true,
+  audioCtx: null,
+};
+
+function ensurePartyAudio() {
+  if (!partyFx.enabled) {
+    return null;
+  }
+
+  if (!partyFx.audioCtx) {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) {
+      return null;
+    }
+    partyFx.audioCtx = new AudioCtx();
+  }
+
+  if (partyFx.audioCtx.state === "suspended") {
+    partyFx.audioCtx.resume().catch(() => {});
+  }
+
+  return partyFx.audioCtx;
+}
+
+function playPartyFx(type) {
+  const audio = ensurePartyAudio();
+  if (!audio) {
+    return;
+  }
+
+  const now = audio.currentTime;
+  const oscillator = audio.createOscillator();
+  const gain = audio.createGain();
+  oscillator.connect(gain);
+  gain.connect(audio.destination);
+
+  if (type === "success") {
+    oscillator.type = "triangle";
+    oscillator.frequency.setValueAtTime(360, now);
+    oscillator.frequency.exponentialRampToValueAtTime(620, now + 0.12);
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.14, now + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+    oscillator.start(now);
+    oscillator.stop(now + 0.2);
+    return;
+  }
+
+  if (type === "warning") {
+    oscillator.type = "sawtooth";
+    oscillator.frequency.setValueAtTime(250, now);
+    oscillator.frequency.exponentialRampToValueAtTime(170, now + 0.12);
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.1, now + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.16);
+    oscillator.start(now);
+    oscillator.stop(now + 0.18);
+    return;
+  }
+
+  oscillator.type = "square";
+  oscillator.frequency.setValueAtTime(210, now);
+  oscillator.frequency.exponentialRampToValueAtTime(290, now + 0.08);
+  gain.gain.setValueAtTime(0.0001, now);
+  gain.gain.exponentialRampToValueAtTime(0.08, now + 0.02);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.13);
+  oscillator.start(now);
+  oscillator.stop(now + 0.14);
+}
+
+function hypePop(element) {
+  if (!element) {
+    return;
+  }
+
+  element.classList.remove("hype-pop");
+  void element.offsetWidth;
+  element.classList.add("hype-pop");
+}
+
+if (fxToggle && fxStatus) {
+  fxToggle.addEventListener("click", () => {
+    partyFx.enabled = !partyFx.enabled;
+    fxToggle.textContent = `Party Sound: ${partyFx.enabled ? "On" : "Off"}`;
+    fxStatus.textContent = partyFx.enabled ? "Hype mode active" : "Hype mode muted";
+    if (partyFx.enabled) {
+      playPartyFx("blip");
+    }
+  });
+}
+
 const beerPongState = {
   cups: { a: 10, b: 10 },
   history: [],
@@ -54,6 +149,9 @@ function scoreCup(scoringTeam) {
 
   if (beerPongState.cups[defendingTeam] === 0) {
     beerPongState.winner = scoringTeam;
+    playPartyFx("success");
+  } else {
+    playPartyFx("blip");
   }
 
   updateBeerPongUI();
@@ -68,6 +166,7 @@ function undoCup(team) {
   beerPongState.cups[lastTarget] += 1;
   beerPongState.winner = null;
   beerPongState.turn = team;
+  playPartyFx("warning");
   updateBeerPongUI();
 }
 
@@ -88,6 +187,7 @@ resetBeerPong.addEventListener("click", () => {
   beerPongState.history = [];
   beerPongState.turn = "a";
   beerPongState.winner = null;
+  playPartyFx("blip");
   updateBeerPongUI();
 });
 
@@ -560,6 +660,14 @@ const cardOutput = document.getElementById("card-output");
 const cardsLeft = document.getElementById("cards-left");
 const resetRingFire = document.getElementById("reset-ring-fire");
 const ringFirePokerCard = document.getElementById("ring-fire-poker-card");
+const ringFireStage = document.getElementById("ring-fire-stage");
+const kingStatusEl = document.getElementById("king-status");
+const kingSlots = Array.from(document.querySelectorAll(".king-slot"));
+let ringFireAudioCtx = null;
+const ringFireState = {
+  kingsDrawn: 0,
+  kingComplete: false,
+};
 
 const suitSymbolMap = {
   Hearts: "♥",
@@ -632,18 +740,156 @@ function updateDeckUI(messageTitle = "Ready to draw", messageBody = "Press draw 
   rule.textContent = messageBody;
 }
 
+function ensureRingFireAudio() {
+  if (!ringFireAudioCtx) {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) {
+      return null;
+    }
+    ringFireAudioCtx = new AudioCtx();
+  }
+
+  if (ringFireAudioCtx.state === "suspended") {
+    ringFireAudioCtx.resume().catch(() => {});
+  }
+
+  return ringFireAudioCtx;
+}
+
+function playRingFireSound(rank) {
+  const audio = ensureRingFireAudio();
+  if (!audio) {
+    return;
+  }
+
+  const now = audio.currentTime;
+
+  const burst = audio.createOscillator();
+  const burstGain = audio.createGain();
+  burst.type = "sawtooth";
+  burst.frequency.setValueAtTime(220, now);
+  burst.frequency.exponentialRampToValueAtTime(420, now + 0.08);
+  burstGain.gain.setValueAtTime(0.0001, now);
+  burstGain.gain.exponentialRampToValueAtTime(0.09, now + 0.02);
+  burstGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+  burst.connect(burstGain);
+  burstGain.connect(audio.destination);
+  burst.start(now);
+  burst.stop(now + 0.2);
+
+  const rumble = audio.createOscillator();
+  const rumbleGain = audio.createGain();
+  rumble.type = "triangle";
+  rumble.frequency.setValueAtTime(86, now);
+  rumble.frequency.exponentialRampToValueAtTime(62, now + 0.15);
+  rumbleGain.gain.setValueAtTime(0.0001, now);
+  rumbleGain.gain.exponentialRampToValueAtTime(0.08, now + 0.03);
+  rumbleGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
+  rumble.connect(rumbleGain);
+  rumbleGain.connect(audio.destination);
+  rumble.start(now);
+  rumble.stop(now + 0.24);
+
+  if (rank === "K") {
+    const king = audio.createOscillator();
+    const kingGain = audio.createGain();
+    king.type = "square";
+    king.frequency.setValueAtTime(520, now + 0.02);
+    king.frequency.exponentialRampToValueAtTime(960, now + 0.22);
+    kingGain.gain.setValueAtTime(0.0001, now + 0.02);
+    kingGain.gain.exponentialRampToValueAtTime(0.12, now + 0.07);
+    kingGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.3);
+    king.connect(kingGain);
+    kingGain.connect(audio.destination);
+    king.start(now + 0.02);
+    king.stop(now + 0.32);
+  }
+}
+
+function updateKingsMeter() {
+  kingSlots.forEach((slot, index) => {
+    slot.classList.toggle("filled", index < ringFireState.kingsDrawn);
+  });
+
+  if (!kingStatusEl) {
+    return;
+  }
+
+  if (ringFireState.kingComplete) {
+    kingStatusEl.textContent = "4th King drawn. Last King drinks the center cup.";
+    return;
+  }
+
+  kingStatusEl.textContent = `Kings drawn: ${ringFireState.kingsDrawn} / 4`;
+}
+
+function triggerRingFireExplosion() {
+  if (!ringFireStage) {
+    return;
+  }
+
+  ringFireStage.classList.remove("inferno-burst");
+  void ringFireStage.offsetWidth;
+  ringFireStage.classList.add("inferno-burst");
+  ringFireStage.classList.add("king-flare");
+}
+
+function triggerRingFireEffect(rank) {
+  if (!ringFireStage) {
+    return;
+  }
+
+  ringFireStage.classList.remove("ignite", "king-flare", "inferno-burst");
+  void ringFireStage.offsetWidth;
+  ringFireStage.classList.add("ignite");
+
+  const fireIntensity = 0.72 + ((52 - deck.length) / 52) * 0.55;
+  ringFireStage.style.setProperty("--fire-intensity", `${fireIntensity.toFixed(2)}`);
+
+  if (rank === "K") {
+    ringFireStage.classList.add("king-flare");
+  }
+}
+
 function drawCard() {
   if (deck.length === 0) {
     updateDeckUI("Deck Empty", "Reset to shuffle a new Ring of Fire round.");
     renderPokerCard(ringFirePokerCard, null);
+    if (ringFireStage) {
+      ringFireStage.classList.remove("ignite", "king-flare", "inferno-burst");
+      ringFireStage.style.setProperty("--fire-intensity", "0.75");
+    }
     return;
   }
 
   const card = deck.pop();
   const label = `${card.rank} of ${card.suit}`;
-  const rule = rankRules[card.rank] || "House choice: create your own move.";
+  let rule = rankRules[card.rank] || "House choice: create your own move.";
+  let isFinalKing = false;
+
+  if (card.rank === "K") {
+    ringFireState.kingsDrawn += 1;
+    if (ringFireState.kingsDrawn >= 4) {
+      ringFireState.kingComplete = true;
+      ringFireState.kingsDrawn = 4;
+      rule = "Last King Drinks: You drew the 4th king. Finish the center cup.";
+      isFinalKing = true;
+      playPartyFx("success");
+    } else {
+      rule = `King's Cup: Add to center cup. ${4 - ringFireState.kingsDrawn} kings to go.`;
+    }
+    updateKingsMeter();
+  }
+
   updateDeckUI(label, rule);
   renderPokerCard(ringFirePokerCard, card);
+  triggerRingFireEffect(card.rank);
+  if (isFinalKing) {
+    triggerRingFireExplosion();
+  }
+  playRingFireSound(card.rank);
+  playPartyFx(card.rank === "K" ? "success" : "blip");
+  hypePop(cardOutput);
 }
 
 drawCardButton.addEventListener("click", drawCard);
@@ -652,6 +898,14 @@ resetRingFire.addEventListener("click", () => {
   deck = createDeck();
   updateDeckUI();
   renderPokerCard(ringFirePokerCard, null);
+  ringFireState.kingsDrawn = 0;
+  ringFireState.kingComplete = false;
+  updateKingsMeter();
+  if (ringFireStage) {
+    ringFireStage.classList.remove("ignite", "king-flare", "inferno-burst");
+    ringFireStage.style.setProperty("--fire-intensity", "0.75");
+  }
+  playPartyFx("blip");
 });
 
 const nhiePrompts = [
@@ -707,6 +961,8 @@ function setupPromptGame(buttonId, outputId, titleText, prompts) {
   button.addEventListener("click", () => {
     title.textContent = titleText;
     body.textContent = pickRandom(prompts);
+    hypePop(output);
+    playPartyFx("success");
   });
 }
 
@@ -750,21 +1006,25 @@ function updateFlipUI() {
 
 document.getElementById("flip-a-plus").addEventListener("click", () => {
   flipState.a += 1;
+  playPartyFx("blip");
   updateFlipUI();
 });
 
 document.getElementById("flip-a-minus").addEventListener("click", () => {
   flipState.a = Math.max(0, flipState.a - 1);
+  playPartyFx("warning");
   updateFlipUI();
 });
 
 document.getElementById("flip-b-plus").addEventListener("click", () => {
   flipState.b += 1;
+  playPartyFx("blip");
   updateFlipUI();
 });
 
 document.getElementById("flip-b-minus").addEventListener("click", () => {
   flipState.b = Math.max(0, flipState.b - 1);
+  playPartyFx("warning");
   updateFlipUI();
 });
 
@@ -776,6 +1036,7 @@ flipStart.addEventListener("click", () => {
   flipState.running = true;
   flipState.startedAt = Date.now();
   flipState.timerId = window.setInterval(updateFlipUI, 250);
+  playPartyFx("blip");
 });
 
 flipStop.addEventListener("click", () => {
@@ -787,6 +1048,7 @@ flipStop.addEventListener("click", () => {
   flipState.running = false;
   window.clearInterval(flipState.timerId);
   flipState.timerId = null;
+  playPartyFx("warning");
   updateFlipUI();
 });
 
@@ -800,6 +1062,7 @@ flipReset.addEventListener("click", () => {
   flipState.startedAt = 0;
   flipState.elapsed = 0;
   flipState.timerId = null;
+  playPartyFx("blip");
   updateFlipUI();
 });
 
@@ -807,6 +1070,7 @@ const powerRoundEl = document.getElementById("power-round");
 const powerStatusEl = document.getElementById("power-status");
 const powerNext = document.getElementById("power-next");
 const powerReset = document.getElementById("power-reset");
+const powerFill = document.getElementById("power-fill");
 
 const powerState = {
   round: 0,
@@ -815,6 +1079,10 @@ const powerState = {
 
 function updatePowerUI() {
   powerRoundEl.textContent = `${powerState.round} / ${powerState.maxRound}`;
+  if (powerFill) {
+    const percent = Math.min(100, (powerState.round / powerState.maxRound) * 100);
+    powerFill.style.width = `${percent}%`;
+  }
   if (powerState.round >= powerState.maxRound) {
     powerStatusEl.textContent = "Power Hour complete. Hydrate and celebrate.";
   } else {
@@ -825,12 +1093,18 @@ function updatePowerUI() {
 powerNext.addEventListener("click", () => {
   if (powerState.round < powerState.maxRound) {
     powerState.round += 1;
+    if (powerState.round % 10 === 0 || powerState.round === powerState.maxRound) {
+      playPartyFx("success");
+    } else {
+      playPartyFx("blip");
+    }
     updatePowerUI();
   }
 });
 
 powerReset.addEventListener("click", () => {
   powerState.round = 0;
+  playPartyFx("warning");
   updatePowerUI();
 });
 
@@ -840,6 +1114,7 @@ const hlHigher = document.getElementById("hl-higher");
 const hlLower = document.getElementById("hl-lower");
 const hlReset = document.getElementById("hl-reset");
 const hlPokerCard = document.getElementById("hl-poker-card");
+const hlStreakEl = document.getElementById("hl-streak");
 
 const hlValueMap = {
   A: 14,
@@ -860,6 +1135,7 @@ const hlValueMap = {
 const higherLowerState = {
   deck: [],
   current: null,
+  streak: 0,
 };
 
 function createPlayingDeck() {
@@ -879,8 +1155,12 @@ function cardLabel(card) {
 function resetHigherLower() {
   higherLowerState.deck = createPlayingDeck();
   higherLowerState.current = higherLowerState.deck.pop();
+  higherLowerState.streak = 0;
   hlCurrentEl.textContent = cardLabel(higherLowerState.current);
   hlStatusEl.textContent = "Guess higher or lower to reveal the next card.";
+  if (hlStreakEl) {
+    hlStreakEl.textContent = "Streak: 0";
+  }
   renderPokerCard(hlPokerCard, higherLowerState.current);
 }
 
@@ -894,15 +1174,31 @@ function playHigherLower(guess) {
   const currentValue = hlValueMap[higherLowerState.current.rank];
   const nextValue = hlValueMap[next.rank];
   let result = "Tie. No drink this turn.";
+  let wasCorrect = false;
 
   if (nextValue !== currentValue) {
     const isCorrect = (guess === "higher" && nextValue > currentValue) || (guess === "lower" && nextValue < currentValue);
+    wasCorrect = isCorrect;
     result = isCorrect ? "Correct guess. Pass a drink." : "Wrong guess. Take a drink.";
+  }
+
+  if (nextValue === currentValue) {
+    higherLowerState.streak = 0;
+    playPartyFx("blip");
+  } else if (wasCorrect) {
+    higherLowerState.streak += 1;
+    playPartyFx("success");
+  } else {
+    higherLowerState.streak = 0;
+    playPartyFx("warning");
   }
 
   higherLowerState.current = next;
   hlCurrentEl.textContent = cardLabel(next);
   hlStatusEl.textContent = `${result} ${higherLowerState.deck.length} cards left.`;
+  if (hlStreakEl) {
+    hlStreakEl.textContent = `Streak: ${higherLowerState.streak}`;
+  }
   renderPokerCard(hlPokerCard, next);
 }
 
@@ -911,6 +1207,7 @@ hlLower.addEventListener("click", () => playHigherLower("lower"));
 hlReset.addEventListener("click", resetHigherLower);
 
 deck = createDeck();
+updateKingsMeter();
 updateBeerPongUI();
 updateDeckUI();
 renderPokerCard(ringFirePokerCard, null);
