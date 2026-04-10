@@ -116,6 +116,51 @@ const drawCardButton = document.getElementById("draw-card");
 const cardOutput = document.getElementById("card-output");
 const cardsLeft = document.getElementById("cards-left");
 const resetRingFire = document.getElementById("reset-ring-fire");
+const ringFirePokerCard = document.getElementById("ring-fire-poker-card");
+
+const suitSymbolMap = {
+  Hearts: "♥",
+  Diamonds: "♦",
+  Clubs: "♣",
+  Spades: "♠",
+};
+
+function renderPokerCard(target, card = null) {
+  if (!target) {
+    return;
+  }
+
+  if (!card) {
+    target.className = "poker-card is-back";
+    target.innerHTML = `
+      <div class="poker-card-face poker-card-back">
+        <p>PARTY</p>
+      </div>
+    `;
+    return;
+  }
+
+  const symbol = suitSymbolMap[card.suit] || "?";
+  const colorClass = card.suit === "Hearts" || card.suit === "Diamonds" ? "red" : "black";
+  target.className = `poker-card dealt ${colorClass}`;
+  target.innerHTML = `
+    <div class="poker-card-face">
+      <div class="poker-corner top">
+        <span class="poker-rank">${card.rank}</span>
+        <span class="poker-suit">${symbol}</span>
+      </div>
+      <div class="poker-center">${symbol}</div>
+      <div class="poker-corner bottom">
+        <span class="poker-rank">${card.rank}</span>
+        <span class="poker-suit">${symbol}</span>
+      </div>
+    </div>
+  `;
+
+  window.setTimeout(() => {
+    target.classList.remove("dealt");
+  }, 420);
+}
 
 function shuffleDeck(cards) {
   for (let i = cards.length - 1; i > 0; i -= 1) {
@@ -147,6 +192,7 @@ function updateDeckUI(messageTitle = "Ready to draw", messageBody = "Press draw 
 function drawCard() {
   if (deck.length === 0) {
     updateDeckUI("Deck Empty", "Reset to shuffle a new Ring of Fire round.");
+    renderPokerCard(ringFirePokerCard, null);
     return;
   }
 
@@ -154,6 +200,7 @@ function drawCard() {
   const label = `${card.rank} of ${card.suit}`;
   const rule = rankRules[card.rank] || "House choice: create your own move.";
   updateDeckUI(label, rule);
+  renderPokerCard(ringFirePokerCard, card);
 }
 
 drawCardButton.addEventListener("click", drawCard);
@@ -161,6 +208,7 @@ drawCardButton.addEventListener("click", drawCard);
 resetRingFire.addEventListener("click", () => {
   deck = createDeck();
   updateDeckUI();
+  renderPokerCard(ringFirePokerCard, null);
 });
 
 const nhiePrompts = [
@@ -348,6 +396,7 @@ const hlStatusEl = document.getElementById("hl-status");
 const hlHigher = document.getElementById("hl-higher");
 const hlLower = document.getElementById("hl-lower");
 const hlReset = document.getElementById("hl-reset");
+const hlPokerCard = document.getElementById("hl-poker-card");
 
 const hlValueMap = {
   A: 14,
@@ -389,6 +438,7 @@ function resetHigherLower() {
   higherLowerState.current = higherLowerState.deck.pop();
   hlCurrentEl.textContent = cardLabel(higherLowerState.current);
   hlStatusEl.textContent = "Guess higher or lower to reveal the next card.";
+  renderPokerCard(hlPokerCard, higherLowerState.current);
 }
 
 function playHigherLower(guess) {
@@ -410,6 +460,7 @@ function playHigherLower(guess) {
   higherLowerState.current = next;
   hlCurrentEl.textContent = cardLabel(next);
   hlStatusEl.textContent = `${result} ${higherLowerState.deck.length} cards left.`;
+  renderPokerCard(hlPokerCard, next);
 }
 
 hlHigher.addEventListener("click", () => playHigherLower("higher"));
@@ -419,6 +470,7 @@ hlReset.addEventListener("click", resetHigherLower);
 deck = createDeck();
 updateBeerPongUI();
 updateDeckUI();
+renderPokerCard(ringFirePokerCard, null);
 updateFlipUI();
 updatePowerUI();
 resetHigherLower();

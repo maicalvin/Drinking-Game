@@ -132,6 +132,11 @@
         <div class="deck-area">
           <button id="draw-card" class="draw">Draw Card</button>
           <div class="card-output" id="card-output" aria-live="polite">
+            <div class="poker-card is-back" id="ring-fire-poker-card" aria-hidden="true">
+              <div class="poker-card-face poker-card-back">
+                <p>PARTY</p>
+              </div>
+            </div>
             <p class="card-rank">Ready to draw</p>
             <p class="card-rule">Press draw to start your round.</p>
           </div>
@@ -250,6 +255,11 @@
 
         <div class="status-tile">
           <p class="tile-label">Current Card</p>
+          <div class="poker-card is-back" id="hl-poker-card" aria-hidden="true">
+            <div class="poker-card-face poker-card-back">
+              <p>HIGH/LOW</p>
+            </div>
+          </div>
           <p class="tile-value" id="hl-current">Draw to begin</p>
         </div>
 

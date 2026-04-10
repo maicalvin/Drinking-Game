@@ -292,6 +292,9 @@ h1 {
   padding: 1rem;
   background: linear-gradient(130deg, rgba(46, 196, 182, 0.15), rgba(255, 122, 89, 0.12));
   min-height: 120px;
+  display: grid;
+  justify-items: start;
+  gap: 0.5rem;
 }
 
 .card-rank {
@@ -303,6 +306,130 @@ h1 {
 .card-rule {
   margin: 0.4rem 0 0;
   color: var(--muted);
+}
+
+.poker-card {
+  width: 112px;
+  height: 158px;
+  border-radius: 14px;
+  perspective: 700px;
+  cursor: default;
+  transform-style: preserve-3d;
+  transition: transform 260ms ease;
+}
+
+.poker-card:hover {
+  transform: rotate(-2deg) translateY(-3px);
+}
+
+.poker-card-face {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 14px;
+  border: 2px solid #f2f2f2;
+  background: linear-gradient(175deg, #ffffff 0%, #eef3f8 100%);
+  box-shadow: 0 14px 20px rgba(0, 0, 0, 0.24);
+  padding: 0.45rem;
+  overflow: hidden;
+}
+
+.poker-card-face::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, transparent 25%, rgba(255, 255, 255, 0.5) 45%, transparent 62%);
+  transform: translateX(-120%);
+  transition: transform 420ms ease;
+}
+
+.poker-card:hover .poker-card-face::after {
+  transform: translateX(120%);
+}
+
+.poker-card.red {
+  color: #d00032;
+}
+
+.poker-card.black {
+  color: #102a43;
+}
+
+.poker-corner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+  font-weight: 700;
+}
+
+.poker-corner.bottom {
+  position: absolute;
+  right: 0.45rem;
+  bottom: 0.45rem;
+  transform: rotate(180deg);
+}
+
+.poker-rank {
+  font-size: 1.05rem;
+}
+
+.poker-suit {
+  font-size: 0.95rem;
+  margin-top: 0.12rem;
+}
+
+.poker-center {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 2.4rem;
+}
+
+.poker-card-back {
+  display: grid;
+  place-items: center;
+  background: repeating-linear-gradient(
+      45deg,
+      #f6f6f6,
+      #f6f6f6 8px,
+      #e1e7ee 8px,
+      #e1e7ee 16px
+    ),
+    linear-gradient(145deg, #264653, #1d3557);
+  color: #17324d;
+}
+
+.poker-card-back p {
+  margin: 0;
+  background: #ffffff;
+  border: 2px solid #17324d;
+  border-radius: 8px;
+  padding: 0.25rem 0.45rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05rem;
+}
+
+.poker-card.is-back .poker-card-face {
+  border-color: #17324d;
+}
+
+.poker-card.dealt {
+  animation: dealIn 360ms ease-out;
+}
+
+@keyframes dealIn {
+  from {
+    transform: translateY(-10px) rotate(-5deg) scale(0.95);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0) rotate(0deg) scale(1);
+    opacity: 1;
+  }
 }
 
 .footer {
@@ -363,6 +490,11 @@ h1 {
   .draw,
   .cta {
     width: 100%;
+  }
+
+  .poker-card {
+    width: 100px;
+    height: 144px;
   }
 
   .inline-actions {
